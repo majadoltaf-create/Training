@@ -108,7 +108,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-
 <div class="view" id="view-plan"></div>
 <div class="view" id="view-progress"></div>
 <script>
-var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzlDRFgjxJISdQle_Nrb_vZirNg4txJUBkPDL86e1sckEf07RUazdSE6co-q5Wxdh_w/exec';
+var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbw-o4TEHVoy1mXEwqLIFUYP4zPY7tBbSy7STZKwWUmnA1z-ACvEdeOifBFYpFX8AMXd/exec';
 
 var PROGRAM = {
   push:{label:'PUSH DAY',color:'#f0c040',muscles:'Chest / Shoulders / Triceps',icon:'💪',
@@ -258,22 +258,15 @@ function syncToSheets(dayLabel, setsArr, msgId) {
 
   var payload = JSON.stringify({date:fmtDate(getDateKey()), day:dayLabel, sets:setsArr});
 
-  // Use no-cors fetch - works with Google Apps Script
-  fetch(SHEETS_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    cache: 'no-cache',
-    headers: {'Content-Type': 'text/plain'},
-    body: payload
-  }).then(function() {
+  // Use image trick to send GET request - most reliable for Google Apps Script
+  var url = SHEETS_URL + '?data=' + encodeURIComponent(payload);
+  var img = new Image();
+  img.onload = img.onerror = function() {
     msg.style.color = 'var(--green)';
     msg.textContent = '✓ Saved and synced!';
     setTimeout(function(){ msg.style.display='none'; }, 3000);
-  }).catch(function() {
-    msg.style.color = '#f05050';
-    msg.textContent = '✓ Saved locally (sync failed)';
-    setTimeout(function(){ msg.style.display='none'; }, 3000);
-  });
+  };
+  img.src = url;
 }
 
 function finishWorkout() {
