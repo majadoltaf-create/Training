@@ -108,7 +108,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-
 <div class="view" id="view-plan"></div>
 <div class="view" id="view-progress"></div>
 <script>
-var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzklGbUpvjtxsJO2RhvG_wUnLs1UFi3HxNNxUqrCRFXLh_hiX6bpx2BQtVrVVCE2SOw/exec';
+var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzlDRFgjxJISdQle_Nrb_vZirNg4txJUBkPDL86e1sckEf07RUazdSE6co-q5Wxdh_w/exec';
 
 var PROGRAM = {
   push:{label:'PUSH DAY',color:'#f0c040',muscles:'Chest / Shoulders / Triceps',icon:'💪',
@@ -255,23 +255,25 @@ function syncToSheets(dayLabel, setsArr, msgId) {
   msg.style.display = 'inline';
   msg.style.color = 'var(--muted2)';
   msg.textContent = 'Syncing...';
+
   var payload = JSON.stringify({date:fmtDate(getDateKey()), day:dayLabel, sets:setsArr});
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', SHEETS_URL, true);
-  xhr.setRequestHeader('Content-Type','application/json');
-  xhr.onreadystatechange = function() {
-    if(xhr.readyState === 4) {
-      msg.style.color = 'var(--green)';
-      msg.textContent = '✓ Saved and synced!';
-      setTimeout(function(){ msg.style.display='none'; }, 3000);
-    }
-  };
-  xhr.onerror = function() {
+
+  // Use no-cors fetch - works with Google Apps Script
+  fetch(SHEETS_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    cache: 'no-cache',
+    headers: {'Content-Type': 'text/plain'},
+    body: payload
+  }).then(function() {
     msg.style.color = 'var(--green)';
-    msg.textContent = '✓ Saved locally';
+    msg.textContent = '✓ Saved and synced!';
     setTimeout(function(){ msg.style.display='none'; }, 3000);
-  };
-  xhr.send(payload);
+  }).catch(function() {
+    msg.style.color = '#f05050';
+    msg.textContent = '✓ Saved locally (sync failed)';
+    setTimeout(function(){ msg.style.display='none'; }, 3000);
+  });
 }
 
 function finishWorkout() {
